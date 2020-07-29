@@ -11,7 +11,7 @@ public class MainClass extends JFrame implements ActionListener {
 
     public MainClass()
     {
-        super( "Stream Production" );
+        super( "Overlay Control" );
 
         Container c = getContentPane();
         c.setLayout( new FlowLayout() );
