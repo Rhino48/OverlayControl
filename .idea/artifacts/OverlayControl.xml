@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="OverlayControl">
+    <output-path>$PROJECT_DIR$/OverlayControl</output-path>
+    <root id="archive" name="OverlayControl.jar">
+      <element id="module-output" name="OverlayControl" />
+    </root>
+  </artifact>
+</component>
