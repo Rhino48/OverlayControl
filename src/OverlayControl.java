@@ -1,6 +1,9 @@
 import java.awt.*;
 import java.awt.event.*;
+import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.text.ParseException;
 
@@ -20,12 +23,12 @@ public class OverlayControl extends JFrame implements ActionListener {
 
         tabbedPane.addTab("Main", panelMain);
         tabbedPane.addTab("Casters", panelCasters);
-        tabbedPane.setPreferredSize(new Dimension(100, 210));
+        tabbedPane.setPreferredSize(new Dimension(100, 110));
         bar.add(tabbedPane);
-        setJMenuBar(bar);
 
         panelMain.revalidate();
-        setSize(550, 250);
+        setJMenuBar(bar);
+        setSize(600, 150);
         setResizable(false);
         setVisible(true);
     }
@@ -36,19 +39,28 @@ public class OverlayControl extends JFrame implements ActionListener {
         SpinnerModel model1     = new SpinnerNumberModel(0, 0, 10, 1);
         SpinnerModel model2     = new SpinnerNumberModel(0, 0, 10, 1);
         JButton buttonConfirm   = buttonHelp("Confirm", "mainConfirm");
+        buttonConfirm.setToolTipText("Make changes to the team files");
         JButton buttonSwap      = buttonHelp("Swap", "mainSwap");
+        buttonSwap.setToolTipText("Swaps info in the UI - DOES NOT EDIT THE FILES");
         spinnerTeam1            = new JSpinner(model1);
         spinnerTeam2            = new JSpinner(model2);
         textTeam1               = new JTextField(10);
         textTeam2               = new JTextField(10);
 
+        Image team1IconRaw = getScaledImage(new ImageIcon("./Assets/Team1Logo.png").getImage(), 40);
+        Image team2IconRaw = getScaledImage(new ImageIcon("./Assets/Team2Logo.png").getImage(), 40);
+        JLabel team1Icon = new JLabel(new ImageIcon(team1IconRaw));
+        JLabel team2Icon = new JLabel(new ImageIcon(team2IconRaw));
+
         panelMain.setLayout(new FlowLayout());
+        panelMain.add(team1Icon);
         panelMain.add(textTeam1);
         panelMain.add(spinnerTeam1);
         panelMain.add(buttonConfirm);
         panelMain.add(buttonSwap);
         panelMain.add(spinnerTeam2);
         panelMain.add(textTeam2);
+        panelMain.add(team2Icon);
 
         return panelMain;
     }
@@ -63,9 +75,9 @@ public class OverlayControl extends JFrame implements ActionListener {
         JButton casterConfirmButton = buttonHelp("Confirm", "casterConfirm");
 
         caster1.setBorder(BorderFactory.createTitledBorder("Caster 1"));
-        caster1.setLayout(new FlowLayout());
+        caster1.setLayout(new FlowLayout(FlowLayout.CENTER, 25, 5));
         caster2.setBorder(BorderFactory.createTitledBorder("Caster 2"));
-        caster2.setLayout(new FlowLayout());
+        caster2.setLayout(new FlowLayout(FlowLayout.CENTER, 25, 5));
 
         JLabel labelNameCast1 = new JLabel("Name:");
         JLabel labelSocialCast1 = new JLabel("Social:");
@@ -87,10 +99,11 @@ public class OverlayControl extends JFrame implements ActionListener {
         caster2.add(labelSocialCast2);
         caster2.add(textSocialCast2);
 
-        panelCasters.setLayout(new BoxLayout(panelCasters, BoxLayout.Y_AXIS));
+        panelCasters.setLayout(new BoxLayout(panelCasters, BoxLayout.X_AXIS));
+
         panelCasters.add(caster1);
         panelCasters.add(caster2);
-        panelCasters.add(Box.createVerticalGlue());
+        panelCasters.add(Box.createHorizontalGlue());
         panelCasters.add(casterConfirmButton);
 
         return  panelCasters;
@@ -116,6 +129,19 @@ public class OverlayControl extends JFrame implements ActionListener {
         newButton.setFont(Font.getFont("Times New Roman"));
 
         return newButton;
+    }
+
+    // Resize a given image
+    private Image getScaledImage(Image srcImg, int scale){
+
+        BufferedImage resizedImg = new BufferedImage(scale, scale, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = resizedImg.createGraphics();
+
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g2.drawImage(srcImg, 0, 0, scale, scale, null);
+        g2.dispose();
+
+        return resizedImg;
     }
 
     @Override
