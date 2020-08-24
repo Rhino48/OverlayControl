@@ -22,6 +22,16 @@ After downloading, set the sources in your streaming/recording software to the a
 Do not move or rename any of the files, otherwise the application will not work. Open the OverlayControl.jar file and
 edit the fields as desired. Team1 inputs are on the left side of the application, and Team2 inputs are on the right.
 
+<div align="center">
+  <br />
+  <p>
+    <img src="https://imgur.com/PlUT9jk.png" width="546" alt="Overlay Control - Main" />
+    <img src="https://imgur.com/dhG3fnU.png" width="546" alt="Overlay Control - Casters" />
+  </p>
+  <br />
+
+</div>
+
 ## Built With
 
 * [Java](https://www.java.com/inc/BrowserRedirect1.jsp)
