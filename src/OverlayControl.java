@@ -1,24 +1,27 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.nio.channels.FileChannel;
+import java.text.ParseException;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import java.awt.image.BufferedImage;
-import java.io.*;
-import java.text.ParseException;
 
 
 public class OverlayControl extends JFrame implements ActionListener {
     private JSpinner spinnerTeam1, spinnerTeam2;
     private JTextField textTeam1, textTeam2;
     private JTextField textNameCast1, textNameCast2, textSocialCast1, textSocialCast2;
+    private JLabel team1Icon, team2Icon;
+    private JPanel panelMain;
 
     public OverlayControl()
     {
         super("Overlay Control");
         JMenuBar bar            = new JMenuBar();
         JTabbedPane tabbedPane  = new JTabbedPane();
-        JPanel panelMain        = panelMainCreator();
+        panelMain               = panelMainCreator();
         JPanel panelCasters     = panelCastersCreator();
 
         tabbedPane.addTab("Main", panelMain);
@@ -49,8 +52,8 @@ public class OverlayControl extends JFrame implements ActionListener {
 
         Image team1IconRaw = getScaledImage(new ImageIcon("./Assets/Team1Logo.png").getImage(), 40);
         Image team2IconRaw = getScaledImage(new ImageIcon("./Assets/Team2Logo.png").getImage(), 40);
-        JLabel team1Icon = new JLabel(new ImageIcon(team1IconRaw));
-        JLabel team2Icon = new JLabel(new ImageIcon(team2IconRaw));
+        team1Icon = new JLabel(new ImageIcon(team1IconRaw));
+        team2Icon = new JLabel(new ImageIcon(team2IconRaw));
 
         panelMain.setLayout(new FlowLayout());
         panelMain.add(team1Icon);
@@ -109,6 +112,7 @@ public class OverlayControl extends JFrame implements ActionListener {
         return  panelCasters;
     }
 
+    // Create a FileWriter and write the given input to the given file
     public void writerHelp(String path, String input){
         try {
             FileWriter myWriter = new FileWriter(path);
@@ -119,7 +123,7 @@ public class OverlayControl extends JFrame implements ActionListener {
         }
     }
 
-    // Create a button with the coded template
+    // Create a button with a template
     public JButton buttonHelp(String name, String actionCode){
         JButton newButton = new JButton(name);
 
@@ -144,50 +148,97 @@ public class OverlayControl extends JFrame implements ActionListener {
         return resizedImg;
     }
 
+    public static void copyFile(File sourceFile, File destFile) throws IOException {
+        if(!destFile.exists()) {
+            destFile.createNewFile();
+        }
+
+        FileChannel source = null;
+        FileChannel destination = null;
+        try {
+            source = new RandomAccessFile(sourceFile,"rw").getChannel();
+            destination = new RandomAccessFile(destFile,"rw").getChannel();
+
+            long position = 0;
+            long count    = source.size();
+
+            source.transferTo(position, count, destination);
+        }
+        finally {
+            if(source != null) {
+                source.close();
+            }
+            if(destination != null) {
+                destination.close();
+            }
+        }
+    }
+
     @Override
     public void actionPerformed(ActionEvent ae) {
         String action = ae.getActionCommand();
 
-        // Main Confirm button - takes app input and modifies the related text files
-        if(action.equals("mainConfirm")){
-            try{
-                spinnerTeam1.commitEdit();
-                spinnerTeam2.commitEdit();
-            } catch (ParseException e) {
-                e.printStackTrace();
+        // Main Confirm button - takes app input and modifies the related files
+        // Swap button - swaps Team1 and Team2 app inputs
+        // Caster Confirm button - takes app input and modifies the related caster text files
+        switch (action) {
+            case "mainConfirm" -> {
+                try {
+                    spinnerTeam1.commitEdit();
+                    spinnerTeam2.commitEdit();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+
+                Integer int1 = (Integer) spinnerTeam1.getValue();
+                Integer int2 = (Integer) spinnerTeam2.getValue();
+                String string1 = int1.toString();
+                String string2 = int2.toString();
+                writerHelp("./Assets/Team1Name.txt", textTeam1.getText());
+                writerHelp("./Assets/Team1Score.txt", string1);
+                writerHelp("./Assets/Team2Score.txt", string2);
+                writerHelp("./Assets/Team2Name.txt", textTeam2.getText());
+
+                File source1 = new File("./Logos/" + textTeam1.getText() + ".png");
+                File dest1   = new File("./Assets/Team1Logo.png");
+
+                File source2 = new File("./Logos/" + textTeam2.getText() + ".png");
+                File dest2   = new File("./Assets/Team2Logo.png");
+
+                try{
+                    copyFile(source1, dest1);
+                    copyFile(source2, dest2);
+
+                    Image team1IconRaw = getScaledImage(new ImageIcon("./Logos/" + textTeam1.getText() + ".png").getImage(), 40);
+                    Image team2IconRaw = getScaledImage(new ImageIcon("./Logos/" + textTeam2.getText() + ".png").getImage(), 40);
+                    team1Icon.setIcon(new ImageIcon(team1IconRaw));
+                    team2Icon.setIcon(new ImageIcon(team2IconRaw));
+                    team1Icon.revalidate();
+                    team2Icon.revalidate();
+                    panelMain.revalidate();
+                }
+                catch(IOException e){
+                    e.printStackTrace();
+                }
+
+            }
+            case "mainSwap" -> {
+                String temp;
+                Object tempObj;
+                temp = textTeam1.getText();
+                textTeam1.setText(textTeam2.getText());
+                textTeam2.setText(temp);
+                tempObj = spinnerTeam1.getValue();
+                spinnerTeam1.setValue(spinnerTeam2.getValue());
+                spinnerTeam2.setValue(tempObj);
             }
 
-            Integer int1 = (Integer) spinnerTeam1.getValue();
-            Integer int2 = (Integer) spinnerTeam2.getValue();
-            String string1 = int1.toString();
-            String string2 = int2.toString();
-
-            writerHelp("./Assets/Team1Name.txt", textTeam1.getText());
-            writerHelp("./Assets/Team1Score.txt", string1);
-            writerHelp("./Assets/Team2Score.txt", string2);
-            writerHelp("./Assets/Team2Name.txt", textTeam2.getText());
-        }
-
-        // Swap button - swaps Team1 and Team2 app inputs
-        else if(action.equals("mainSwap")){
-            String temp;
-            Object tempObj;
-
-            temp = textTeam1.getText();
-            textTeam1.setText(textTeam2.getText());
-            textTeam2.setText(temp);
-
-            tempObj = spinnerTeam1.getValue();
-            spinnerTeam1.setValue(spinnerTeam2.getValue());
-            spinnerTeam2.setValue(tempObj);
-        }
-
-        // Caster Confirm button - takes app input and modifies the related caster text files
-        else if(action.equals("casterConfirm")){
-            writerHelp("./Assets/CasterInfo/Caster1Name.txt",   textNameCast1.getText());
-            writerHelp("./Assets/CasterInfo/Caster1Social.txt", textSocialCast1.getText());
-            writerHelp("./Assets/CasterInfo/Caster2Name.txt",   textNameCast2.getText());
-            writerHelp("./Assets/CasterInfo/Caster2Social.txt", textSocialCast2.getText());
+            case "casterConfirm" -> {
+                writerHelp("./Assets/CasterInfo/Caster1Name.txt", textNameCast1.getText());
+                writerHelp("./Assets/CasterInfo/Caster1Social.txt", textSocialCast1.getText());
+                writerHelp("./Assets/CasterInfo/Caster2Name.txt", textNameCast2.getText());
+                writerHelp("./Assets/CasterInfo/Caster2Social.txt", textSocialCast2.getText());
+            }
         }
     }
 
